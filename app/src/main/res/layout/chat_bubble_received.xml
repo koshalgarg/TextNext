@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="3dp"
+    android:layout_marginBottom="3dp"
+    >
+
+    <LinearLayout
+
+        android:id="@+id/chatBubble"
+        android:padding="6dp"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:background="@drawable/chat_bubble"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="uuuttttttttttttttttttttt"
+            android:minEms="4"
+            android:textColor="#000000"
+            android:alpha="0.87"
+            android:textSize="17sp"
+            android:maxEms="12"
+            android:id="@+id/chat"
+            />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dp"
+            android:layout_height="wrap_content">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="11:00 AM"
+                android:textSize="10sp"
+                android:layout_marginRight="2dp"
+                android:layout_centerVertical="true"
+                android:id="@+id/time"
+                />
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_margin="3dp"
+                android:visibility="gone"
+                android:id="@+id/status"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@+id/time"
+                android:src="@drawable/ic_done_all_white_24dp"
+                android:tint="@color/colorPrimaryDark"
+                />
+
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

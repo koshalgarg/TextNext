@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
+
+
+    <item
+        android:id="@+id/status"
+        android:orderInCategory="101"
+        android:title="Online"
+        app:showAsAction="always" />
+
+
+    <item
+        android:id="@+id/reconnect"
+        android:orderInCategory="102"
+        android:visible="false"
+        android:icon="@drawable/ic_autorenew_white_24dp"
+        app:showAsAction="always"
+        android:title="" />
+
+    <item
+        android:id="@+id/feedback"
+        android:orderInCategory="101"
+        android:title="Feedback"
+        app:showAsAction="never" />
+
+
+    <item
+        android:id="@+id/logout"
+        android:orderInCategory="102"
+        android:title="Logout"
+        app:showAsAction="never"
+        />
+
+
+</menu>

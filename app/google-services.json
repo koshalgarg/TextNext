@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "465436282814",
+    "firebase_url": "https://asl-chat-1702c.firebaseio.com",
+    "project_id": "asl-chat-1702c",
+    "storage_bucket": "asl-chat-1702c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465436282814:android:e5a5263f9223ae21",
+        "android_client_info": {
+          "package_name": "com.textnext.koshal.asl"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "465436282814-5ea2k4h33gpssb0v3qlto7cj3r5444pe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1moU_cUCHkHKaDGdaMwXTSrbmbnF06JA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

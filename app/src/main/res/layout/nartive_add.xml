@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_marginTop="3dp"
+    android:layout_marginBottom="3dp"
+    android:padding="6dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+ <!--   <com.google.android.gms.ads.NativeExpressAdView
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        ads:adUnitId="ca-app-pub-7736106011076586/5300065358"
+        ads:adSize="420x80">
+    </com.google.android.gms.ads.NativeExpressAdView>
+-->
+</LinearLayout>

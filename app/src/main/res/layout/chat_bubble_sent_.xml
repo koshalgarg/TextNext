@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="3dp"
+
+    android:layout_marginBottom="3dp"
+    >
+
+    <LinearLayout
+
+        android:id="@+id/chatBubble"
+        android:padding="6dp"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:background="@drawable/chat_bubble_mine"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_alignParentRight="true"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="fgthth  ghbggg"
+            android:minEms="4"
+            android:textColor="#FFFFFF"
+            android:alpha="0.87"
+            android:textSize="17sp"
+            android:maxEms="12"
+            android:id="@+id/chat"
+            />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_gravity="right"
+            android:layout_marginLeft="10dp"
+            android:layout_height="wrap_content">
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="11:00 AM"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:layout_centerVertical="true"
+                android:id="@+id/time"
+                />
+
+            <ImageView
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:layout_marginLeft="6dp"
+                android:layout_marginRight="3dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginBottom="3dp"
+                android:id="@+id/status"
+                android:layout_toRightOf="@+id/time"
+                android:layout_centerVertical="true"
+                android:src="@drawable/ic_done_all_white_24dp"
+
+                />
+
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+</RelativeLayout>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="buttonColor" format="color"/>
+    <attr name="checkedColor" format="color"/>
+    <attr name="uncheckedColor" format="color"/>
+    <attr name="bubble" format="color"/>
+
+    <attr name="chatTextColor" format="color"/>
+    <attr name="background" format="reference"/>
+    <attr name="app_logo" format="reference"/>
+
+
+
+
+
+
+
+</resources>

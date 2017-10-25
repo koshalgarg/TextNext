@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.textnext.koshal.asl.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:alpha="0.5"
+        android:background="@drawable/bg">
+
+    </LinearLayout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.textnext.koshal.asl.MainActivity">
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_margin="20dp"
+        android:padding="10dp"
+        android:text=""
+        android:textColor="#000000"
+        android:alpha="0.87"
+        android:id="@+id/online"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="CHAT"
+        android:layout_below="@id/online"
+        android:layout_gravity="center"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:background="@drawable/button"
+        android:id="@+id/start"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="WATCH"
+        android:alpha="0.75"
+        android:textSize="20sp"
+        android:background="@drawable/button"
+        android:layout_below="@+id/start"
+        android:textColor="#FFFFFF"
+
+        android:id="@+id/startSpecial"
+        />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:id="@+id/hint_layout"
+        android:layout_marginRight="20dp"
+        android:visibility="gone"
+        android:layout_below="@+id/startSpecial">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:id="@+id/bulb"
+            android:src="@drawable/ic_lightbulb_outline_black_24dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_toRightOf="@+id/bulb"
+            android:layout_marginLeft="8dp"
+            android:textSize="18sp"
+            android:textColor="@color/colorPrimary"
+            android:text="Watch video to connect with people of your interest"
+            android:layout_height="wrap_content" />
+
+        `
+    </RelativeLayout>
+
+    <com.google.android.gms.ads.AdView
+        xmlns:ads="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/adView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        ads:adSize="SMART_BANNER"
+        ads:adUnitId="ca-app-pub-6690454024464967/4265829799">
+    </com.google.android.gms.ads.AdView>
+
+</RelativeLayout>
+</FrameLayout>
