@@ -57,7 +57,8 @@ public class ASLDBHelper extends SQLiteOpenHelper {
                 ASLContract.MessagesEntry.COL_MESSAGE + " TEXT NOT NULL, " +
                 ASLContract.MessagesEntry.COL_TYPE + " TEXT, " +
                 ASLContract.MessagesEntry.COL_STATUS + " TEXT , " +
-                ASLContract.MessagesEntry.COL_TS + " TEXT NOT NULL " +
+                ASLContract.MessagesEntry.COL_TS + " TEXT NOT NULL, " +
+                ASLContract.MessagesEntry.COL_URI + " TEXT  " +
                 " );";
 
         db.execSQL(SQL_CREATE_ITEM_FEED_TABLE);

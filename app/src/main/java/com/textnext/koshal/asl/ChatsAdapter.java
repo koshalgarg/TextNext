@@ -189,19 +189,8 @@ class ChatsAdapter extends CursorRecyclerViewAdapter {
         holder.time.setText(ASLUtils.time(Long.parseLong(message.getTs())));
 
 
-        final Uri uri;
-        if(message.getUri().length()>=5)
-        {
-            uri= Uri.parse(message.getUri());
 
-        }
-        else
-        {
-            uri= Uri.parse(message.getMsg());
-        }
-
-
-        Picasso.with(mContext).load(uri).resize(240, 240).networkPolicy(NetworkPolicy.OFFLINE).centerCrop().into(holder.image, new Callback() {
+        Picasso.with(mContext).load(message.getUri()).resize(240, 240).networkPolicy(NetworkPolicy.OFFLINE).centerCrop().into(holder.image, new Callback() {
             @Override
             public void onSuccess() {
 
@@ -211,7 +200,7 @@ class ChatsAdapter extends CursorRecyclerViewAdapter {
             public void onError() {
 
                 Picasso.with(mContext)
-                        .load(uri)
+                        .load(message.getMsg())
                         .resize(240, 240)
                         .centerCrop()
                         .into(holder.image);
@@ -224,7 +213,9 @@ class ChatsAdapter extends CursorRecyclerViewAdapter {
             public void onClick(View v) {
                 android.app.FragmentTransaction ft = ((Activity) mContext).getFragmentManager().beginTransaction();
                 Bundle bundle = new Bundle();
-                bundle.putString("image", String.valueOf(uri));
+                bundle.putString("url", message.getMsg());
+                bundle.putString("uri", message.getUri());
+
                 MyDialogFragment newFragment = MyDialogFragment.newInstance(bundle);
                 newFragment.setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Holo_NoActionBar);
                 newFragment.show(ft, "dialog");

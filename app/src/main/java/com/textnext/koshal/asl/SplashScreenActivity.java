@@ -44,7 +44,7 @@ public class SplashScreenActivity extends AppCompatActivity {
         startActivity(i);
         finish();
 
-        ASL.mLoginReference.child(ASL.mDeviceId).addValueEventListener(new ValueEventListener() {
+        ASL.mLoginReference.child(ASL.mDeviceId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 

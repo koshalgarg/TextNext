@@ -24,7 +24,8 @@
         <activity android:name=".LoginActivity">
         </activity>
         <activity android:name=".MainActivity" />
-        <activity android:name=".ChatActivity" />
+        <activity android:name=".ChatActivity"
+            />
         <activity android:name=".SplashScreenActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

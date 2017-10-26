@@ -50,13 +50,13 @@ public class MyDialogFragment extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        Bundle b = getArguments();
+        final Bundle b = getArguments();
         View v = inflater.inflate(R.layout.fragment_dialog, container, false);
-        ImageView i = (ImageView) v.findViewById(R.id.image);
+        final ImageView i = (ImageView) v.findViewById(R.id.image);
         final ProgressBar progressBar= (ProgressBar) v.findViewById(R.id.progress);
 
-        String uri = b.getString("image");
-        Log.i("showing", uri);
+        String uri = b.getString("uri");
+        final String url = b.getString("url");
 
         Picasso.with(getActivity())
                 .load(uri)
@@ -69,6 +69,22 @@ public class MyDialogFragment extends DialogFragment {
 
                     @Override
                     public void onError() {
+
+                        Picasso.with(getActivity())
+                                .load(url)
+                                .resize(240, 240)
+                                .centerCrop()
+                                .into(i, new com.squareup.picasso.Callback() {
+                                    @Override
+                                    public void onSuccess() {
+                                        progressBar.setVisibility(View.GONE);
+                                    }
+
+                                    @Override
+                                    public void onError() {
+
+                                    }
+                                });
 
                     }
                 });

@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
@@ -28,6 +29,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -63,12 +65,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class ChatActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-
-    ProgressDialog mProgressDialog;
     DatabaseReference mMessageReference;
     DatabaseReference mMyOnlineReference;
     DatabaseReference mThOnlineREference;
@@ -77,7 +78,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
     EditText msg;
     ImageView send, image;
-    RecyclerView mRecyclerView;
+    RecyclerView mRecyclerView,mSuggestions;
     TextView detailsView;
     public ChatsAdapter mChatsAdapter;
     DatabaseReference mUserReference;
@@ -98,12 +99,11 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     private Menu menu;
     private MenuItem mi_status;
     private MenuItem mi_reconnect;
-    private MenuItem mi_logout;
-    private MenuItem mi_feedback;
 
     String P_UID;
 
     boolean disconnected = false;
+    String mCID;
 
 
     @Override
@@ -111,40 +111,58 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
+        mCID=ASLUtils.getShared(Constants.CID);
+
+        if(mCID.length()<5)
+        {
+            ASLUtils.deleteAllMessage(ChatActivity.this);
+            Intent i=new Intent(ChatActivity.this,MainActivity.class);
+            i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i);
+            finish();
+        }
+
+        ASL.mConnectionReference.child(mCID).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                Connection c=dataSnapshot.getValue(Connection.class);
+                if(c==null || !c.getStatus().equals("1"))
+                {
+                    if(!disconnected) {
+
+                        ASL.mUser.setStatus("0");
+                        ASL.mUser.setCid("");
+                        ASL.mUser.setOnline(String.valueOf(System.currentTimeMillis()));
+                        mUserReference.setValue(ASL.mUser);
+
+                        ASLUtils.setShared(Constants.CID, "");
+                        ASLUtils.setShared(Constants.P_UID, "");
+                        ASLUtils.deleteAllMessage(ChatActivity.this);
+                        Toast.makeText(ChatActivity.this, "User Disconnected", Toast.LENGTH_SHORT).show();
+                        Intent i = new Intent(ChatActivity.this, MainActivity.class);
+                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(i);
+                        finish();
+                    }
+                }
+                else
+                {
+                    getP_UID(c);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
         initialize();
 
-
-        if (ASLUtils.getShared(Constants.CID).length() < 5) {
-            mProgressDialog.setMessage("Searching");
-            //mProgressDialog.setCancelable(false);
-            mProgressDialog.show();
-            ASL.mLoginReference.child(ASL.mDeviceId).child("cid").addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                    String  cid = dataSnapshot.getValue(String.class);
-                    if (cid!=null && cid.length()>2) {
-                        mProgressDialog.hide();
-                        mProgressDialog.dismiss();
-                        ASL.mUser.setCid(cid);
-                        ASLUtils.setShared(Constants.CID,cid);
-                        Vibrator v;
-                        v = (Vibrator) ChatActivity.this.getSystemService(Context.VIBRATOR_SERVICE);
-                        v.vibrate(200);
-                        connect();
-                    }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        } else {
-            connect();
-        }
-    }
+        connect();
+          }
 
     private void initialize() {
 
@@ -155,7 +173,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
         marshMallowPermission = new MarshMallowPermission(this);
 
-        mProgressDialog = new ProgressDialog(this);
         mInterstitialAd = new InterstitialAd(this);
         mInterstitialAd.setAdUnitId("ca-app-pub-6690454024464967/1228602912");
         mInterstitialAd.loadAd(new AdRequest.Builder().build());
@@ -173,15 +190,19 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
+                count=msg.getText().toString().length();
                 if(count>=2)
+                {
+                    image.setVisibility(View.GONE);
                     return;
+                }
 
                 if (count == 0) {
                     MyStaus = "Online";
                     if (mMyOnlineReference != null)
                         mMyOnlineReference.setValue(MyStaus);
-                    image.setVisibility(View.VISIBLE);
                     //send.setVisibility(View.GONE);
+                    image.setVisibility(View.VISIBLE);
                 } else if (count == 1) {
                         MyStaus = "Typing...";
                         if (mMyOnlineReference != null)
@@ -207,22 +228,8 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
                 if (mes.length() == 0 || mMessageReference == null || ASL.mUser.getCid().equals(""))
                     return;
 
+                sendMessage(msg.getText().toString().trim());
                 msg.getText().clear();
-                Message message = new Message(
-
-                );
-                message.setMsg(mes.trim());
-                message.setTs(String.valueOf(System.currentTimeMillis()));
-                message.setUid(ASL.mDeviceId);
-                message.setType("text");
-                message.setStatus("0");
-
-                DatabaseReference d=mMessageReference.push();
-                insertMessage(message,d.getKey());
-                d.setValue(message);
-
-                //insertMessage(message,mMessageReference.getKey());
-
             }
         });
 
@@ -251,49 +258,35 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         mChatsAdapter = new ChatsAdapter(this, null);
         mRecyclerView.setAdapter(mChatsAdapter);
 
+
+
+        mSuggestions= (RecyclerView) findViewById(R.id.suggestions);
+        LinearLayoutManager manager2 = new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false);
+        mSuggestions.setLayoutManager(manager2);
+
+        SuggestionsAdapter suggestionAdapter=new SuggestionsAdapter(ChatActivity.this,getSuggestions());
+        mSuggestions.setAdapter(suggestionAdapter);
+
+    }
+
+    public void sendMessage(String msg) {
+        Message message = new Message(
+
+        );
+        message.setMsg(msg);
+        message.setTs(String.valueOf(System.currentTimeMillis()));
+        message.setUid(ASL.mDeviceId);
+        message.setType("text");
+        message.setStatus("0");
+
+        DatabaseReference d=mMessageReference.push();
+        insertMessage(message,d.getKey());
+        d.setValue(message);
+
     }
 
 
     private void connect() {
-
-        String CID=ASLUtils.getShared(Constants.CID);
-
-        if (CID.length()<1) {
-            disconnectedByUser();
-            return;
-        }
-
-        ASL.mConnectionReference.child(CID).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-
-                Connection c = dataSnapshot.getValue(Connection.class);
-                if(c!=null && !c.getStatus().equals("1"))
-                {
-                    if(!disconnected)
-                    {
-                        disconnectedByUser();
-
-                    }
-                }
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-
-
-        if (mi_reconnect != null)
-            mi_reconnect.setVisible(true);
-
-
-        //online status
-
-            getP_UID(CID);
-
-
 
 
         if(ASL.mUser.getIsAdmin()!=null && ASL.mUser.getIsAdmin().equals("1"))
@@ -316,16 +309,13 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         }
         //~online status
 
-
-        ASLUtils.setShared(Constants.CID, CID);
-
         mMessageReference = ASL.mDatabase.getReference().child("messages").child(ASL.mUser.getCid());
-        //mMessageReference.keepSynced(true);
         mMessageReference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
 
                 messageCount++;
+
                 Message m = dataSnapshot.getValue(Message.class);
                 if (m != null && !m.getUid().equals(ASL.mDeviceId)) {
                     mMessageReference.child(dataSnapshot.getKey()).child("status").setValue("1");
@@ -362,50 +352,34 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-
     }
 
-    private void getP_UID(String cid) {
-        final String[] pid = {ASL.mDeviceId};
+    private void getP_UID(Connection c) {
 
-        ASL.mConnectionReference.child(cid).addListenerForSingleValueEvent(new ValueEventListener() {
+        if(c.getUser1().equals(ASL.mDeviceId))
+        {
+            P_UID =c.getUser2();
+        }
+        else{
+            P_UID =c.getUser1();
+
+        }
+
+
+        mMyOnlineReference = ASL.mLoginReference.child(ASL.mDeviceId).child("online");
+        mThOnlineREference = ASL.mLoginReference.child(P_UID).child("online");
+
+
+        mThOnlineREference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Connection c=dataSnapshot.getValue(Connection.class);
-
-                if(c.getUser1().equals(pid[0]))
-                {
-                    pid[0] =c.getUser2();
-                }
-                else{
-                    pid[0] =c.getUser1();
-
-                }
-
-                P_UID=pid[0];
-
-                mMyOnlineReference = ASL.mLoginReference.child(ASL.mDeviceId).child("online");
-                mThOnlineREference = ASL.mLoginReference.child(P_UID).child("online");
-
-                mThOnlineREference.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String ThOnlineStatus = dataSnapshot.getValue(String.class);
-                        if (mi_status != null)
-                            mi_status.setTitle(ASLUtils.getOnlineStaus(ThOnlineStatus));
-                        mMyOnlineReference.setValue("Online");
-
-                    }
-
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-
+                String ThOnlineStatus = dataSnapshot.getValue(String.class);
+                if (mi_status != null)
+                    mi_status.setTitle(ASLUtils.getOnlineStaus(ThOnlineStatus));
+                mMyOnlineReference.setValue("Online");
 
             }
+
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -413,37 +387,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-
-        ASLUtils.setShared(Constants.P_UID,pid[0]);
-    }
-
-    private void disconnectedByUser() {
-
-        if (disconnected)
-            return;
-
-        Toast.makeText(this, "User Disconnected", Toast.LENGTH_SHORT).show();
-
-        disconnected = true;
-
-        ASL.mUser.setStatus("0");
-        ASL.mUser.setCid("");
-        ASL.mUser.setOnline(String.valueOf(System.currentTimeMillis()));
-        mUserReference.setValue(ASL.mUser);
-
-        ASLUtils.setShared(Constants.CID, "");
-        ASLUtils.setShared(Constants.P_UID, "");
-
-        if (mInterstitialAd.isLoaded() && messageCount >= 10) {
-            mInterstitialAd.show();
-        }
-        mProgressDialog.dismiss();
-        Intent i = new Intent(ChatActivity.this, MainActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-
-        startActivity(i);
-        finish();
+        ASLUtils.setShared(Constants.P_UID,P_UID);
     }
 
 
@@ -473,13 +417,11 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         ASLUtils.setShared(Constants.P_UID, "");
         ASL.mConnectionReference.child(cid).child("status").setValue("0");
 
-
         if (mInterstitialAd.isLoaded() && messageCount >= 10) {
             mInterstitialAd.show();
         }
         Intent i = new Intent(ChatActivity.this, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
         startActivity(i);
         finish();
 
@@ -527,6 +469,15 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        if(data!=null && data.getCount()>6)
+        {
+            if(mSuggestions!=null)
+            {
+                mSuggestions.setVisibility(View.GONE);
+            }
+        }
+
         mChatsAdapter.swapCursor(data);
 
     }
@@ -546,6 +497,8 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         cv.put(ASLContract.MessagesEntry.COL_USER_ID, m.getUid());
         cv.put(ASLContract.MessagesEntry.COL_TYPE, m.getType());
         cv.put(ASLContract.MessagesEntry.COL_ID, key);
+        cv.put(ASLContract.MessagesEntry.COL_URI, m.getUri());
+
 
 
         contentValues[0] = cv;
@@ -572,7 +525,15 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         camera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pickFromCamera();
+                if (isStoragePermissionGranted()) {
+                    pickFromCamera();
+                } else {
+                    requestStorageAndCameraPermission();
+                    if (isStoragePermissionGranted()) {
+                        pickFromCamera();
+                    }
+                }
+
                 addImageDialog.dismiss();
             }
         });
@@ -598,7 +559,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void pickFromCamera() {
 
-
+/*
         if (!marshMallowPermission.checkPermissionForCamera()) {
             marshMallowPermission.requestPermissionForCamera();
         }
@@ -608,6 +569,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
         if (marshMallowPermission.checkPermissionForCamera() && marshMallowPermission.checkPermissionForExternalStorage()) {
+*/
 
     Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             // Ensure that there's a camera activity to handle the intent
@@ -629,7 +591,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
                 }
             }
 
-        }
 
     }
 
@@ -659,7 +620,8 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             Uri filePath = data.getData();
             try {
                 selectedBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                showImageConfirmDialog(filePath);
+                //showImageConfirmDialog(filePath);
+                uploadImage(filePath);
             } catch (IOException e) {
                 Toast.makeText(this, "Something went wrong !!", Toast.LENGTH_SHORT).show();
             }
@@ -674,7 +636,8 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
             this.sendBroadcast(mediaScanIntent);
             try {
                 selectedBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), contentUri);
-                showImageConfirmDialog(contentUri);
+                //showImageConfirmDialog(contentUri);
+                uploadImage(contentUri);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -759,13 +722,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         }
     }
 
-    private void requestStorageAndCameraPermission() {
-        ActivityCompat
-                .requestPermissions((ChatActivity) (this),
-                        new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA}
-                        , STORAGE_REQUEST_CODE);
-    }
-
     private void showImageConfirmDialog(final Uri imageUri) {
 
         final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(ChatActivity.this);
@@ -801,8 +757,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         this.menu = menu;
         mi_status = menu.findItem(R.id.status);
         mi_reconnect = menu.findItem(R.id.reconnect);
-        mi_logout = menu.findItem(R.id.logout);
-        mi_feedback = menu.findItem(R.id.feedback);
+
 
         if (mThOnlineREference != null) {
             mThOnlineREference.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -833,15 +788,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     public boolean onOptionsItemSelected(MenuItem item) {
 
         switch (item.getItemId()) {
-            case R.id.feedback: {
-                feedbackDialog();
-                break;
-            }
-
-            case R.id.logout: {
-                logout();
-                break;
-            }
 
             case R.id.reconnect: {
                 reconnect();
@@ -851,55 +797,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
         }
         return true;
-    }
-
-
-    private void feedbackDialog() {
-        final BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(ChatActivity.this);
-        View view = LayoutInflater.from(this).inflate(R.layout.feedback_form_layout, null);
-        bottomSheetDialog.setContentView(view);
-        bottomSheetDialog.show();
-
-        final EditText text = (EditText) view.findViewById(R.id.feedbackText);
-        TextView send = (TextView) view.findViewById(R.id.send);
-
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (text.getText().toString().length() > 0) {
-
-                    Feedback feed = new Feedback();
-                    feed.setFeedback(text.getText().toString().trim());
-                    feed.setUid(ASL.mDeviceId);
-                    feed.setTs(String.valueOf(System.currentTimeMillis()));
-                    ASL.mDatabase.getReference().child("feedback").push().setValue(feed);
-                    bottomSheetDialog.dismiss();
-
-
-                } else {
-                }
-            }
-        });
-
-    }
-
-
-    private void logout() {
-
-        if (mMyOnlineReference != null)
-            mMyOnlineReference.setValue(String.valueOf(System.currentTimeMillis()));
-
-        ASLUtils.setShared(Constants.LOGIN_STAUS, "");
-        ASLUtils.setShared(Constants.CID, "");
-        ASLUtils.setShared(Constants.P_UID, "");
-
-
-        Intent i = new Intent(ChatActivity.this, LoginActivity.class);
-        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-        startActivity(i);
-        finish();
     }
 
     private void reconnect() {
@@ -932,6 +829,43 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
         }
 
+    }
+
+    public ArrayList<String> getSuggestions() {
+        ArrayList<String> suggestions=new ArrayList<>();
+
+        suggestions.add("Hi!");
+        suggestions.add(ASL.mUser.getAge()+" "+ASL.mUser.getSex()+" "+ASL.mUser.getLocation());
+        suggestions.add("What is your name ?");
+        suggestions.add("Where are you from ?");
+        suggestions.add("How are you ?");
+        return suggestions;
+    }
+
+    public boolean isStoragePermissionGranted() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (this.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED &&
+                    this.checkSelfPermission(android.Manifest.permission.CAMERA)
+                            == PackageManager.PERMISSION_GRANTED) {
+
+                return true;
+            } else {
+
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA}, 1);
+                return false;
+            }
+        } else { //permission is automatically granted on sdk<23 upon installation
+
+            return true;
+        }
+    }
+
+    private void requestStorageAndCameraPermission() {
+        ActivityCompat
+                .requestPermissions(this,
+                        new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}
+                        , STORAGE_REQUEST_CODE);
     }
 
 }

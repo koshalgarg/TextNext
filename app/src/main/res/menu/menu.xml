@@ -5,20 +5,20 @@
     tools:context=".MainActivity">
 
 
+
     <item
-        android:id="@+id/status"
+        android:id="@+id/feedback"
         android:orderInCategory="101"
-        android:title="Online"
-        app:showAsAction="always" />
+        android:title="Feedback"
+        app:showAsAction="never" />
 
 
     <item
-        android:id="@+id/reconnect"
+        android:id="@+id/logout"
         android:orderInCategory="102"
-        android:visible="true"
-        android:icon="@drawable/ic_autorenew_white_24dp"
-        app:showAsAction="always"
-        android:title="" />
+        android:title="Logout"
+        app:showAsAction="never"
+        />
 
 
 </menu>

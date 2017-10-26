@@ -72,6 +72,8 @@ public class Message {
         m.setTs(cursor.getString(cursor.getColumnIndex(ASLContract.MessagesEntry.COL_TS)));
         m.setMsg(cursor.getString(cursor.getColumnIndex(ASLContract.MessagesEntry.COL_MESSAGE)));
         m.setUid(cursor.getString(cursor.getColumnIndex(ASLContract.MessagesEntry.COL_USER_ID)));
+        m.setUri(cursor.getString(cursor.getColumnIndex(ASLContract.MessagesEntry.COL_URI)));
+
 
 
         return m;

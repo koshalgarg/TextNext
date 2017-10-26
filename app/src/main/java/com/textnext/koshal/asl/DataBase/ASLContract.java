@@ -30,7 +30,7 @@ public class ASLContract{
         public static final String COL_TYPE = "type";
         public static final String COL_STATUS = "status";
         public static final String COL_TS = "ts";
-
+        public static final String COL_URI = "uri";
 
 
         public static Uri buildUri(long id) {
