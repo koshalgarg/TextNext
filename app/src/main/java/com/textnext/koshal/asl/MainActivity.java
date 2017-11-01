@@ -8,6 +8,7 @@ import android.os.Vibrator;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -28,6 +30,8 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.textnext.koshal.asl.DataObjects.Feedback;
 import com.textnext.koshal.asl.DataObjects.Message;
@@ -36,6 +40,7 @@ import com.textnext.koshal.asl.DataObjects.Connection;
 import com.textnext.koshal.asl.DataObjects.Users;
 
 
+import java.util.ArrayList;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements RewardedVideoAdListener {
@@ -70,7 +75,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
             public void onDismiss(DialogInterface dialog) {
 
 
-                ASL.mOnlineReference.child(ASL.mDeviceId).removeValue();
+               // ASL.mOnlineReference.child(ASL.mDeviceId).removeValue();
             }
         });
 
@@ -140,27 +145,42 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
             @Override
             public void onClick(View v) {
 
+
+
                 mProgressDialog.setMessage("Searching");
                 mProgressDialog.show();
+                enqueUser(0);
 
-                ASL.mOnlineReference.orderByChild("ts").limitToFirst(3).addListenerForSingleValueEvent(new ValueEventListener() {
+                final DatabaseReference mOnlineReference= ASL.mDatabase.getReference().child("online");
+
+
+                final ChildEventListener childListener=new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+
+                        if(!dataSnapshot.getKey().equals(ASL.mDeviceId)) {
+                            Online online = dataSnapshot.getValue(Online.class);
+
+                            String p_priority=online.getPriority();
+                            if(p_priority.equals(ASL.mUser.getSex()) || p_priority.equals(""))
+                            {
+                                establishConnection(dataSnapshot.getKey(), dataSnapshot, 1);
+                            }
+                        }
+                    }
 
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot d : dataSnapshot.getChildren()) {
-                                Online online = d.getValue(Online.class);
+                    }
 
-                                if (online.getPriority().length() == 0 || online.getPriority().equals(ASL.mUser.getSex())) {
-                                    establishConnection(d.getKey(), dataSnapshot, 0);
-                                    return;
-                                }
-                            }
-                            enqueUser(0);
-                        } else {
-                            enqueUser(0);
-                        }
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
 
                     }
 
@@ -168,8 +188,10 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
                     public void onCancelled(DatabaseError databaseError) {
 
                     }
-                });
+                };
 
+
+                mOnlineReference.addChildEventListener(childListener);
 
             }
         });
@@ -318,30 +340,44 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
         mProgressDialog.setMessage("Searching");
         mProgressDialog.show();
 
-        ASL.mOnlineReference.orderByChild("ts").limitToLast(10).addListenerForSingleValueEvent(new ValueEventListener() {
+        ASL.mOnlineReference.runTransaction(new Transaction.Handler() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
+            public Transaction.Result doTransaction(MutableData mutableData) {
 
-                if (dataSnapshot.exists()) {
-                    for (DataSnapshot d : dataSnapshot.getChildren()) {
-                        Online online = d.getValue(Online.class);
-                        if (online.getSex().equals(ASL.mUser.getPriority())) {
-                            if (online.getPriority().equals(ASL.mUser.getSex()) || online.getPriority().equals("")) {
-                                establishConnection(d.getKey(), d, 1);
-                                return;
+
+                ASL.mOnlineReference.orderByChild("ts").limitToLast(10).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                        if (dataSnapshot.exists()) {
+                            for (DataSnapshot d : dataSnapshot.getChildren()) {
+                                Online online = d.getValue(Online.class);
+                                if (online.getSex().equals(ASL.mUser.getPriority())) {
+                                    if (online.getPriority().equals(ASL.mUser.getSex()) || online.getPriority().equals("")) {
+                                        establishConnection(d.getKey(), d, 1);
+                                        return;
+                                    }
+                                }
                             }
+                            enqueUser(1);
+                        } else {
+                            enqueUser(1);
                         }
+
+
                     }
-                    enqueUser(1);
-                } else {
-                    enqueUser(1);
-                }
 
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
+                    }
+                });
+
+                return Transaction.success(mutableData);
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onComplete(DatabaseError databaseError, boolean b, DataSnapshot dataSnapshot) {
 
             }
         });

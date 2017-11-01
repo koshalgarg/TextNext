@@ -37,8 +37,8 @@ class ChatsAdapter extends CursorRecyclerViewAdapter {
     public ChatsAdapter(Context context, Cursor cursor) {
         super(context, cursor);
 
-        this.mContext = context;
-        this.mCursor = cursor;
+            this.mContext = context;
+            this.mCursor = cursor;
 
     }
 

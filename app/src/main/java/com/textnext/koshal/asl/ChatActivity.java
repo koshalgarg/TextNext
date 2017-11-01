@@ -74,8 +74,6 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
     DatabaseReference mMyOnlineReference;
     DatabaseReference mThOnlineREference;
 
-
-
     EditText msg;
     ImageView send, image;
     RecyclerView mRecyclerView,mSuggestions;
@@ -131,19 +129,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
                 {
                     if(!disconnected) {
 
-                        ASL.mUser.setStatus("0");
-                        ASL.mUser.setCid("");
-                        ASL.mUser.setOnline(String.valueOf(System.currentTimeMillis()));
-                        mUserReference.setValue(ASL.mUser);
-
-                        ASLUtils.setShared(Constants.CID, "");
-                        ASLUtils.setShared(Constants.P_UID, "");
-                        ASLUtils.deleteAllMessage(ChatActivity.this);
-                        Toast.makeText(ChatActivity.this, "User Disconnected", Toast.LENGTH_SHORT).show();
-                        Intent i = new Intent(ChatActivity.this, MainActivity.class);
-                        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(i);
-                        finish();
+                        disconnectedByUser();
                     }
                 }
                 else
@@ -163,6 +149,24 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
         connect();
           }
+
+    private void disconnectedByUser() {
+
+        ASL.mUser.setStatus("0");
+        ASL.mUser.setCid("");
+        ASL.mUser.setOnline(String.valueOf(System.currentTimeMillis()));
+        mUserReference.setValue(ASL.mUser);
+
+        ASLUtils.setShared(Constants.CID, "");
+        ASLUtils.setShared(Constants.P_UID, "");
+        ASLUtils.deleteAllMessage(ChatActivity.this);
+        Toast.makeText(ChatActivity.this, "User Disconnected", Toast.LENGTH_SHORT).show();
+        Intent i = new Intent(ChatActivity.this, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(i);
+        finish();
+
+    }
 
     private void initialize() {
 
@@ -370,6 +374,7 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
         mThOnlineREference = ASL.mLoginReference.child(P_UID).child("online");
 
 
+
         mThOnlineREference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -380,6 +385,26 @@ public class ChatActivity extends AppCompatActivity implements LoaderManager.Loa
 
             }
 
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        ASL.mLoginReference.child(P_UID).child("cid").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String p_cid=dataSnapshot.getValue(String.class);
+                if( p_cid==null || !p_cid.equals(mCID))
+                {
+                    if(!disconnected)
+                    {
+                        disconnectedByUser();
+                    }
+                }
+            }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
