@@ -73,9 +73,7 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
         mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-
-
-               // ASL.mOnlineReference.child(ASL.mDeviceId).removeValue();
+                ASL.mOnlineReference.child(ASL.mDeviceId).removeValue();
             }
         });
 
@@ -144,8 +142,6 @@ public class MainActivity extends AppCompatActivity implements RewardedVideoAdLi
         mStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
 
                 mProgressDialog.setMessage("Searching");
                 mProgressDialog.show();
